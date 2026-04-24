@@ -29,4 +29,11 @@ public class BugController {
     public void deleteBug(@PathVariable Long id) {
         service.deleteBug(id);
     }
+
+    @PutMapping("/{id}")
+public Bug updateBug(@PathVariable Long id, @RequestBody Bug bug) {
+    bug.setId(id);
+    return service.saveBug(bug);
+}
+
 }

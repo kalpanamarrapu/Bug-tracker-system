@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bug Tracker</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #3a3a6a);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 40px;
+    }
+
+    .container {
+      margin: 40px auto;
+      width: 60%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    input {
+      padding: 10px;
+      width: 60%;
+      border-radius: 8px;
+      border: none;
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .add-btn {
+      background: #00c896;
+      color: white;
+    }
+
+    .delete-btn {
+      background: #ff4d4d;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .bug {
+      background: rgba(255,255,255,0.1);
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 20px;
+    }
+
+    .OPEN {
+      background: red;
+    }
+
+    .IN_PROGRESS {
+      background: orange;
+    }
+
+    .CLOSED {
+      background: green;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🐞 Bug Tracker</h1>
+
+  <div class="container">
+    <input id="title" placeholder="Enter bug..." />
+    <button class="add-btn" onclick="addBug()">Add</button>
+
+    <div id="list"></div>
+  </div>
+
+  <script>
+    async function loadBugs() {
+      const res = await fetch('/bugs');
+      const data = await res.json();
+
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+
+      data.forEach(bug => {
+        const div = document.createElement('div');
+        div.className = 'bug';
+
+        div.innerHTML = `
+          <span>${bug.title}</span>
+          <div>
+           <select onchange="updateStatus(${bug.id}, this.value)">
+    <option ${bug.status === 'OPEN' ? 'selected' : ''}>OPEN</option>
+    <option ${bug.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+    <option ${bug.status === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+  </select>
+
+  <button class="delete-btn" onclick="deleteBug(${bug.id})">Delete</button>
+          </div>
+        `;
+
+        list.appendChild(div);
+      });
+    }
+
+    async function addBug() {
+      const title = document.getElementById('title').value;
+
+       if (!title.trim()) {
+    alert("Please enter a valid bug");
+    return;
+  }
+
+  await fetch('/bugs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: title,
+      description: "",
+      status: "OPEN"
+        })
+      });
+
+      document.getElementById('title').value = '';
+      loadBugs();
+    }
+
+    async function deleteBug(id) {
+      await fetch('/bugs/' + id, {
+        method: 'DELETE'
+      });
+
+      loadBugs();
+    }
+
+    async function updateStatus(id, status) {
+
+  await fetch('/bugs/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: "updated",
+      description: "",
+      status: status
+    })
+  });
+
+  loadBugs();
+}
+
+    loadBugs();
+  </script>
+
+</body>
+</html>
